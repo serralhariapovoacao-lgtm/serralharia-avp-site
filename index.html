@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teste Serralharia – Encomenda</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Teste Serralharia – Encomenda</h1>
+
+  <form id="form-encomenda">
+    <label>
+      Nome:
+      <input type="text" name="nome" required>
+    </label><br><br>
+
+    <label>
+      NIF:
+      <input type="text" name="nif">
+    </label><br><br>
+
+    <label>
+      Telefone:
+      <input type="text" name="telefone">
+    </label><br><br>
+
+    <label>
+      Email:
+      <input type="email" name="email" required>
+    </label><br><br>
+
+    <label>
+      Morada:
+      <input type="text" name="morada">
+    </label><br><br>
+
+    <label>
+      Método de pagamento:
+      <select name="metodoPagamento">
+        <option value="MBWay">MBWay</option>
+        <option value="Transferência Bancária">Transferência Bancária</option>
+      </select>
+    </label><br><br>
+
+    <label>
+      Item:
+      <input type="text" name="item">
+    </label><br><br>
+
+    <label>
+      Quantidade:
+      <input type="number" name="quantidade" value="1" min="1">
+    </label><br><br>
+
+    <label>
+      Valor por item (€):
+      <input type="number" name="valorItem" step="0.01">
+    </label><br><br>
+
+    <button type="submit">Enviar teste</button>
+  </form>
+
+  <div id="mensagem" style="margin-top:20px; font-weight:bold;"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
