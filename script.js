@@ -1,29 +1,17 @@
-// URL da tua implementação (já está a funcionar)
-const API_URL = 'https://script.google.com/macros/s/AKfycbxQRrZG3ZyCSW-tiHPOWaXpH2YrOIiruEgD_syUK74-QJxvlWlExwTeA08rW864LqdlKg/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbxQRrZG3ZyCSW-tiHPOWaXpH2YrOIiruEgD_syUK74-QJxvlWlExwTeA08rW864LqdlKg/exec';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('form-encomenda');
-  const statusEl = document.getElementById('status');
+async function enviar(payload) {
+  // obrigatórios: tipo e os campos do formulário
+  // payload.ex: { tipo:'encomenda', nome:'...', ... }
 
-  form.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    statusEl.textContent = 'A enviar...';
+  const res = await fetch(GS_URL, {
+    method: 'POST',
+    // usar text/plain para ser "simple request" (não há preflight)
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify(payload)
+  });
 
-    const dados = {
-      tipo: 'encomenda',
-      nome: form.nome.value,
-      nif: form.nif.value,
-      telefone: form.telefone.value,
-      email: form.email.value,
-      morada: form.morada.value,
-      metodoPagamento: form.metodoPagamento.value,
-      item: form.item.value,
-      quantidade: Number(form.quantidade.value || 0),
-      valorItem: Number(form.valorItem.value || 0)
-    };
-
-    console.log('📤 Enviar payload:', dados);
-
-    try {
-      const res = await fetch(API_URL, {
-        method:
+  // Apps Script devolve JSON normal - aqui já consegues ler
+  const data = await res.json();
+  return data; // { ok:true, numero:..., ... }
+}
