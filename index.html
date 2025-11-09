@@ -1,67 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Teste Serralharia – Encomenda</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --primary:#111; --accent:#ff7a00; --bg:#fff; }
+    body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#111;margin:0}
+    .wrap{max-width:760px;margin:48px auto;padding:0 16px}
+    h1{font-size:28px;margin:0 0 24px}
+    .row{display:flex;align-items:center;margin:10px 0}
+    .row label{width:180px}
+    .row input,.row select{flex:1;padding:8px;border:1px solid #bbb;border-radius:4px}
+    button{padding:10px 16px;border:0;border-radius:6px;background:#222;color:#fff;cursor:pointer}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .status{margin-top:16px;font-weight:600}
+    .ok{color:#0a7c2f} .err{color:#b00020}
+  </style>
 </head>
 <body>
-  <h1>Teste Serralharia – Encomenda</h1>
+  <div class="wrap">
+    <h1>Teste Serralharia — Encomenda</h1>
 
-  <form id="form-encomenda">
-    <label>
-      Nome:
-      <input type="text" name="nome" required>
-    </label><br><br>
+    <form id="form-encomenda">
+      <div class="row"><label>Nome:</label> <input name="nome" required /></div>
+      <div class="row"><label>NIF:</label> <input name="nif" /></div>
+      <div class="row"><label>Telefone:</label> <input name="telefone" /></div>
+      <div class="row"><label>Email:</label> <input type="email" name="email" required /></div>
+      <div class="row"><label>Morada:</label> <input name="morada" /></div>
+      <div class="row">
+        <label>Método de pagamento:</label>
+        <select name="metodoPagamento">
+          <option>MBWay</option>
+          <option>Transferência Bancária</option>
+        </select>
+      </div>
+      <div class="row"><label>Item:</label> <input name="item" required /></div>
+      <div class="row"><label>Quantidade:</label> <input type="number" name="quantidade" value="1" min="1" required /></div>
+      <div class="row"><label>Valor por item (€):</label> <input type="number" step="0.01" name="valorItem" value="0" /></div>
 
-    <label>
-      NIF:
-      <input type="text" name="nif">
-    </label><br><br>
+      <button id="btn" type="submit">Enviar</button>
+      <div id="status" class="status"></div>
+    </form>
+  </div>
 
-    <label>
-      Telefone:
-      <input type="text" name="telefone">
-    </label><br><br>
+  <script>
+    // URL da tua implementação (a que disseste há pouco)
+    const GS_URL = 'https://script.google.com/macros/s/AKfycbxQRrZG3ZyCSW-tiHPOWaXpH2YrOIiruEgD_syUK74-QJxvlWlExwTeA08rW864LqdlKg/exec';
 
-    <label>
-      Email:
-      <input type="email" name="email" required>
-    </label><br><br>
+    const form = document.getElementById('form-encomenda');
+    const statusEl = document.getElementById('status');
+    const btn = document.getElementById('btn');
 
-    <label>
-      Morada:
-      <input type="text" name="morada">
-    </label><br><br>
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      statusEl.textContent = 'A enviar...';
+      statusEl.className = 'status';
+      btn.disabled = true;
 
-    <label>
-      Método de pagamento:
-      <select name="metodoPagamento">
-        <option value="MBWay">MBWay</option>
-        <option value="Transferência Bancária">Transferência Bancária</option>
-      </select>
-    </label><br><br>
+      const f = new FormData(form);
+      const payload = {
+        tipo: 'encomenda',
+        nome: f.get('nome') || '',
+        nif: f.get('nif') || '',
+        telefone: f.get('telefone') || '',
+        email: f.get('email') || '',
+        morada: f.get('morada') || '',
+        metodoPagamento: f.get('metodoPagamento') || '',
+        item: f.get('item') || '',
+        quantidade: Number(f.get('quantidade') || 0),
+        valorItem: Number(f.get('valorItem') || 0)
+      };
 
-    <label>
-      Item:
-      <input type="text" name="item">
-    </label><br><br>
+      try {
+        const res = await fetch(GS_URL, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(()=>({ok:false,error:'JSON inválido'}));
 
-    <label>
-      Quantidade:
-      <input type="number" name="quantidade" value="1" min="1">
-    </label><br><br>
-
-    <label>
-      Valor por item (€):
-      <input type="number" name="valorItem" step="0.01">
-    </label><br><br>
-
-    <button type="submit">Enviar teste</button>
-  </form>
-
-  <div id="mensagem" style="margin-top:20px; font-weight:bold;"></div>
-
-  <script src="script.js"></script>
+        if (data.ok) {
+          statusEl.textContent = `Enviado com sucesso! Nº ${data.numero ?? ''}`.trim();
+          statusEl.classList.add('ok');
+          form.reset();
+        } else {
+          statusEl.textContent = `Erro: ${data.error || 'Falha no envio'}`;
+          statusEl.classList.add('err');
+        }
+      } catch (e) {
+        statusEl.textContent = 'Erro de conexão.';
+        statusEl.classList.add('err');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>
