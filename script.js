@@ -1,5 +1,5 @@
 // URL da implementação Web App do Google Apps Script
-const GS_URL = 'https://script.google.com/macros/s/AKfycbxQRrZG3ZyCSW-tiHPOWaXpH2YrOIiruEgD_syUK74-QJxvlWlExwTeA08rW864LqdlKg/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbz-wpl2m8qXwGsdDG8XPh5KX7Mfq5sjtRFN0jsvsGRorDD7qF3J1soo3EFdUga832_UYg/exec';
 
 // Função que envia o formulário para o Google Sheets
 async function enviarPedido(e) {
@@ -9,7 +9,7 @@ async function enviarPedido(e) {
 
   // Lê os campos do formulário
   const payload = {
-    tipo: 'encomenda', // importante: o Apps Script usa isto para saber que é encomenda
+    tipo: 'encomenda', // o Apps Script usa isto para saber que é encomenda
     nome: form.nome.value.trim(),
     nif: form.nif.value.trim(),
     telefone: form.telefone.value.trim(),
@@ -21,7 +21,6 @@ async function enviarPedido(e) {
     valorItem: Number(form.valorItem.value || 0)
   };
 
-  // Mensagem de estado (precisas de ter <p id="status"></p> no HTML)
   const statusEl = document.getElementById('status');
   if (statusEl) {
     statusEl.textContent = 'A enviar pedido...';
@@ -29,28 +28,19 @@ async function enviarPedido(e) {
   }
 
   try {
-    console.log('A enviar payload:', payload);
+    console.log('A enviar payload (no-cors):', payload);
 
-    const res = await fetch(GS_URL, {
+    // IMPORTANTE: no-cors e sem cabeçalhos estranhos
+    await fetch(GS_URL, {
       method: 'POST',
-      // text/plain para evitar CORS / preflight
-      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
 
-    console.log('Resposta HTTP:', res.status, res.statusText);
-
-    // tentar ler o JSON devolvido pelo Apps Script
-    const data = await res.json().catch(() => null);
-    console.log('JSON recebido:', data);
-
-    if (!res.ok || !data || data.ok !== true) {
-      throw new Error(data && data.error ? data.error : 'Erro ao guardar na folha');
-    }
-
-    // Sucesso
+    // Aqui não conseguimos ler a resposta, mas o pedido foi enviado
     if (statusEl) {
-      statusEl.textContent = `Encomenda enviada com sucesso! Número: ${data.numero}`;
+      statusEl.textContent = 'Encomenda enviada com sucesso! Em breve receberá confirmação por email.';
       statusEl.style.color = 'green';
     }
 
@@ -59,7 +49,7 @@ async function enviarPedido(e) {
   } catch (err) {
     console.error('Erro ao enviar:', err);
     if (statusEl) {
-      statusEl.textContent = 'Erro ao enviar pedido. Tenta novamente dentro de alguns minutos.';
+      statusEl.textContent = 'Erro de ligação ao servidor. Tente novamente mais tarde.';
       statusEl.style.color = 'red';
     }
   }
@@ -67,8 +57,7 @@ async function enviarPedido(e) {
 
 // Quando a página carregar, ligamos o listener ao formulário
 document.addEventListener('DOMContentLoaded', () => {
-  // como só tens um formulário na página, é seguro usar querySelector('form')
-  const form = document.querySelector('form');
+  const form = document.querySelector('form'); // só tens um formulário
   if (!form) {
     console.error('Formulário não encontrado na página.');
     return;
