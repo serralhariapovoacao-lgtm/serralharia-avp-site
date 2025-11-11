@@ -1,5 +1,5 @@
 // URL do teu Web App do Google Apps Script
-const GS_URL = "https://script.google.com/macros/s/AKfycbxQRrZG3ZyCSW-tiHPOWaXpH2YrOIiruEgD_syUK74-QJxvlWlExwTeA08rW864LqdlKg/exec";
+const GS_URL = "https://script.google.com/macros/s/AKfycbz-wpl2m8qXwGsdDG8XPh5KX7Mfq5sjtRFN0jsvsGRorDD7qF3J1soo3EFdUga832_UYg/exec";
 
 // Função genérica para enviar um formulário (encomenda ou orçamento)
 async function enviarFormulario(tipo) {
@@ -80,3 +80,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
