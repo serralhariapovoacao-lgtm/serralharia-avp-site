@@ -1,66 +1,82 @@
-// URL da implementação Web App do Google Apps Script
-const GS_URL = 'https://script.google.com/macros/s/AKfycbz-wpl2m8qXwGsdDG8XPh5KX7Mfq5sjtRFN0jsvsGRorDD7qF3J1soo3EFdUga832_UYg/exec';
+// URL do teu Web App do Google Apps Script
+const GS_URL = "https://script.google.com/macros/s/AKfycbxQRrZG3ZyCSW-tiHPOWaXpH2YrOIiruEgD_syUK74-QJxvlWlExwTeA08rW864LqdlKg/exec";
 
-// Função que envia o formulário para o Google Sheets
-async function enviarPedido(e) {
-  e.preventDefault(); // não recarregar a página
+// Função genérica para enviar um formulário (encomenda ou orçamento)
+async function enviarFormulario(tipo) {
+  // Escolher o formulário certo
+  const form = tipo === "encomenda"
+    ? document.getElementById("form-encomenda")
+    : document.getElementById("form-orcamento");
 
-  const form = e.target;
-
-  // Lê os campos do formulário
-  const payload = {
-    tipo: 'encomenda', // o Apps Script usa isto para saber que é encomenda
-    nome: form.nome.value.trim(),
-    nif: form.nif.value.trim(),
-    telefone: form.telefone.value.trim(),
-    email: form.email.value.trim(),
-    morada: form.morada.value.trim(),
-    metodoPagamento: form.metodoPagamento.value,
-    item: form.item.value.trim(),
-    quantidade: Number(form.quantidade.value || 1),
-    valorItem: Number(form.valorItem.value || 0)
-  };
-
-  const statusEl = document.getElementById('status');
-  if (statusEl) {
-    statusEl.textContent = 'A enviar pedido...';
-    statusEl.style.color = '#333';
+  if (!form) {
+    console.error("Formulário não encontrado para tipo:", tipo);
+    return;
   }
 
-  try {
-    console.log('A enviar payload (no-cors):', payload);
+  const mensagemEl = document.getElementById("mensagem-" + tipo);
+  if (mensagemEl) {
+    mensagemEl.textContent = "A enviar o seu pedido...";
+    mensagemEl.style.color = "#333";
+  }
 
-    // IMPORTANTE: no-cors e sem cabeçalhos estranhos
+  // Ler todos os campos do formulário
+  const formData = new FormData(form);
+  const payload = { tipo }; // "encomenda" ou "orcamento"
+
+  formData.forEach((value, key) => {
+    payload[key] = value;
+  });
+
+  console.log("📤 Vou enviar para Google Apps Script:", payload);
+
+  try {
+    // Pedido "no-cors" para evitar CORS
     await fetch(GS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
+      method: "POST",
+      mode: "no-cors", // <- evita o erro de CORS
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8" // simples para evitar preflight
+      },
       body: JSON.stringify(payload)
     });
 
-    // Aqui não conseguimos ler a resposta, mas o pedido foi enviado
-    if (statusEl) {
-      statusEl.textContent = 'Encomenda enviada com sucesso! Em breve receberá confirmação por email.';
-      statusEl.style.color = 'green';
+    // ATENÇÃO:
+    // Em 'no-cors', não conseguimos ler a resposta.
+    // Mas se não deu erro aqui, o pedido foi enviado.
+
+    console.log("✅ Pedido enviado (modo no-cors). Verifica o Google Sheets.");
+
+    if (mensagemEl) {
+      mensagemEl.textContent = "Pedido enviado com sucesso! Vai receber um email de confirmação.";
+      mensagemEl.style.color = "green";
     }
 
+    // Limpar o formulário
     form.reset();
-
   } catch (err) {
-    console.error('Erro ao enviar:', err);
-    if (statusEl) {
-      statusEl.textContent = 'Erro de ligação ao servidor. Tente novamente mais tarde.';
-      statusEl.style.color = 'red';
+    console.error("❌ Erro ao enviar para o Google Apps Script:", err);
+    if (mensagemEl) {
+      mensagemEl.textContent = "Ocorreu um erro ao enviar. Por favor tente mais tarde.";
+      mensagemEl.style.color = "red";
     }
   }
 }
 
-// Quando a página carregar, ligamos o listener ao formulário
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.querySelector('form'); // só tens um formulário
-  if (!form) {
-    console.error('Formulário não encontrado na página.');
-    return;
+// Ligar os eventos quando a página carregar
+document.addEventListener("DOMContentLoaded", () => {
+  const formEncomenda = document.getElementById("form-encomenda");
+  if (formEncomenda) {
+    formEncomenda.addEventListener("submit", (e) => {
+      e.preventDefault();
+      enviarFormulario("encomenda");
+    });
   }
-  form.addEventListener('submit', enviarPedido);
+
+  const formOrcamento = document.getElementById("form-orcamento");
+  if (formOrcamento) {
+    formOrcamento.addEventListener("submit", (e) => {
+      e.preventDefault();
+      enviarFormulario("orcamento");
+    });
+  }
 });
